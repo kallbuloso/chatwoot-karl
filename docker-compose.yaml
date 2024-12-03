@@ -1,0 +1,55 @@
+services:
+  web:
+    image: sendingtk/chatwoot:v3.13.8 ## Versão do Chatwoot NESTOR
+    env_file: .env
+    volumes:
+      - chatwoot_data:/data/storage
+      - chatwoot_public:/app/public    
+    networks:
+      - network_public ## Nome da rede interna
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1      
+      command: bundle exec rails db:chatwoot_prepare && bundle exec rails s -p 3000 -b 0.0.0.0
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+      
+  sidekiq:
+    image: sendingtk/chatwoot:v3.13.8 ## Versão do Chatwoot NESTOR
+    env_file: .env
+    volumes:
+      - chatwoot_data:/data/storage
+      - chatwoot_public:/app/public   
+    networks:
+      - network_public ## Nome da rede interna
+    restart: always    
+    deploy:
+      mode: replicated
+      replicas: 1
+      command: bundle exec sidekiq -C config/sidekiq.yml
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+
+volumes:
+  chatwoot_data:
+    external: true
+    name: chatwoot_data
+  chatwoot_public:
+    external: true
+    name: chatwoot_public
+
+networks:
+  network_public:
+    external: true
+    name: network_public
