@@ -23,6 +23,7 @@ services:
   sidekiq:
     image: sendingtk/chatwoot:v3.13.8 ## Versão do Chatwoot NESTOR
     env_file: .env
+    command: bundle exec sidekiq -C config/sidekiq.yml
     volumes:
       - chatwoot_data:/data/storage
       - chatwoot_public:/app/public   
@@ -32,7 +33,6 @@ services:
     deploy:
       mode: replicated
       replicas: 1
-      command: bundle exec sidekiq -C config/sidekiq.yml
       placement:
         constraints:
           - node.role == manager
